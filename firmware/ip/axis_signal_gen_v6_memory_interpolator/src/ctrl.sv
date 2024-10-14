@@ -1,15 +1,15 @@
 //Format of waveform interface:
-// |------------|-------|---------|------|------------|------------|------------|-----------|----------|----------|----------|----------|
-// | 159 .. 149 |   148 |     147 |  146 | 145 .. 144 | 143 .. 128 | 127 .. 112 | 111 .. 96 | 95 .. 80 | 79 .. 64 | 63 .. 32 | 31 .. 0 |
-// |------------|-------|---------|------|------------|------------|------------|-----------|----------|----------|----------|---------|
-// |       xxxx | phrst | stdysel | mode |     outsel |      nsamp | mem_clk_div|      gain |     xxxx |     addr |    phase |    freq |
-// |------------|-------|---------|------|------------|------------|------------|-----------|----------|----------|----------|---------|
+// |------------|-------|---------|------|------------|------------|------------|-----------|-------------|----------|----------|---------|
+// | 159 .. 149 |   148 |     147 |  146 | 145 .. 144 | 143 .. 128 | 127 .. 112 | 111 .. 96 | 95 .. 80    | 79 .. 64 | 63 .. 32 | 31 .. 0 |
+// |------------|-------|---------|------|------------|------------|------------|-----------|-------------|----------|----------|---------|
+// |       xxxx | phrst | stdysel | mode |     outsel |      nsamp |       xxxx |      gain | mem_clk_div |     addr |    phase |    freq |
+// |------------|-------|---------|------|------------|------------|------------|-----------|-------------|----------|----------|---------|
 // freq 	: 32 bits
 // phase 	: 32 bits
 // addr 	: 16 bits
-// gain 	: 16 bits
 // mem_clk_div 	: 16 bits
-// nsamp 	: 16 bits
+// gain 	: 16 bits
+// nsamp 	: 16 bits -- represent the number of full speed samples
 // outsel 	: 2 bits
 // mode 	: 1 bit
 // stdysel 	: 1 bit
@@ -128,6 +128,8 @@ reg		[15:0]	addr_cnt_r3;
 reg		[15:0]	addr_cnt_r4;
 reg		[15:0]	addr_cnt_r5;
 reg		[15:0]	addr_cnt_r6;
+wire    [15:0]  mem_clk_div_int;
+reg     [15:0]  addr_cnt_div; // New register to handle divided address count
 
 // Gain.
 wire	[15:0]	gain_int;
@@ -240,6 +242,7 @@ always @(posedge clk) begin
 		addr_cnt_r4		<= 0;
 		addr_cnt_r5		<= 0;
 		addr_cnt_r6		<= 0;
+		addr_cnt_div	<= 0;
 
 		// Gain.
 		gain_r1			<= 0;
@@ -342,10 +345,17 @@ always @(posedge clk) begin
 		sync_reg_r7		<= sync_reg_r6;
 
 		// Address.
-		if (rd_en_r2)
+		if (rd_en_r2) begin
 			addr_cnt	<= addr_int;
-		else
-			addr_cnt	<= addr_cnt + 1;
+			addr_cnt_div <= 0; // Reset divided counter on new read
+		end else begin
+			if (addr_cnt_div == mem_clk_div_int - 1) begin
+                addr_cnt <= addr_cnt + 1;
+                addr_cnt_div <= 0; // Reset divided counter
+            end else begin
+                addr_cnt_div <= addr_cnt_div + 1; // Increment divided counter
+            end
+		end
 
 		addr_cnt_r1		<= addr_cnt;
 		addr_cnt_r2		<= addr_cnt_r1;
@@ -427,15 +437,16 @@ always_comb	begin
 end
 
 // Fifo output fields.
-assign pinc_int		= fifo_dout_r[31:0];
-assign phase_int	= fifo_dout_r[63:32];
-assign addr_int		= fifo_dout_r[79:64];
-assign gain_int		= fifo_dout_r[111:96];
-assign nsamp_int	= fifo_dout_r[143:128];
-assign outsel_int	= fifo_dout_r[145:144];
-assign mode_int		= fifo_dout_r[146];
-assign stdysel_int	= fifo_dout_r[147];
-assign phrst_int	= fifo_dout_r[148];
+assign pinc_int			= fifo_dout_r[31:0];
+assign phase_int		= fifo_dout_r[63:32];
+assign addr_int			= fifo_dout_r[79:64];
+assign mem_clk_div_int	= fifo_dout_r[95:80];
+assign gain_int			= fifo_dout_r[111:96];
+assign nsamp_int		= fifo_dout_r[143:128];
+assign outsel_int		= fifo_dout_r[145:144];
+assign mode_int			= fifo_dout_r[146];
+assign stdysel_int		= fifo_dout_r[147];
+assign phrst_int		= fifo_dout_r[148];
 
 // Frequency calculation.
 assign pinc_N		= pinc_r2*N_DDS;
