@@ -61,6 +61,7 @@ wire					m_axis_tvalid;
 reg		[31:0]			freq_r;
 reg		[31:0]			phase_r;
 reg		[15:0]			addr_r;
+reg		[15:0]			mem_clk_div_r;
 reg		[15:0]			gain_r;
 reg		[15:0]			nsamp_r;
 reg		[1:0]			outsel_r;
@@ -176,7 +177,7 @@ axis_signal_gen_v6_memory_interpolator
 // VIP Agents
 axi_mst_0_mst_t 	axi_mst_0_agent;
 
-assign s1_axis_tdata = {{10{1'b0}},phrst_r,stdysel_r,mode_r,outsel_r,nsamp_r,{16{1'b0}},gain_r,{16{1'b0}},addr_r,phase_r,freq_r};
+assign s1_axis_tdata = {{10{1'b0}},phrst_r,stdysel_r,mode_r,outsel_r,nsamp_r,{16{1'b0}},gain_r,mem_clk_div_r,addr_r,phase_r,freq_r};
 
 initial begin
 	// Create agents.
@@ -287,6 +288,7 @@ initial begin
 	freq_r			<= 0;
 	phase_r			<= 0;
 	addr_r			<= 0;
+	mem_clk_div_r	<= 0;
 	gain_r			<= 0;
 	nsamp_r			<= 0;
 	outsel_r		<= 0;
@@ -303,6 +305,7 @@ initial begin
 	freq_r			<= freq_calc(100, N_DDS, 4);	// 120 MHz.
 	phase_r			<= 0;
 	addr_r			<= 22;
+	mem_clk_div_r	<= 1;
 	gain_r			<= 12000;
 	nsamp_r			<= 80;
 	outsel_r		<= 1;	// 0: prod, 1: dds, 2: mem
@@ -316,6 +319,7 @@ initial begin
 	freq_r			<= freq_calc(100, N_DDS, 4);	// 120 MHz.
 	phase_r			<= 0;
 	addr_r			<= 22;
+	mem_clk_div_r	<= 1;
 	gain_r			<= 12000;
 	nsamp_r			<= 123;
 	outsel_r		<= 1;	// 0: prod, 1: dds, 2: mem
@@ -334,6 +338,7 @@ initial begin
 	freq_r			<= freq_calc(100, N_DDS, 13);
 	phase_r			<= 0;
 	addr_r			<= 0;
+	mem_clk_div_r	<= 1;
 	gain_r			<= 30000;
 	nsamp_r			<= 400/N_DDS;
 	outsel_r		<= 0;	// 0: prod, 1: dds, 2: mem
@@ -347,6 +352,7 @@ initial begin
 	//freq_r			<= freq_calc(100, N_DDS, 33);
 	//phase_r			<= 0;
 	//addr_r			<= 5;
+	//mem_clk_div_r		<= 1;
 	//gain_r			<= 30000;
 	//nsamp_r			<= 670/N_DDS;
 	//outsel_r		<= 1;	// 0: prod, 1: dds, 2: mem
@@ -359,6 +365,7 @@ initial begin
 	//freq_r			<= freq_calc(100, N_DDS, 22);
 	//phase_r			<= 7689;
 	//addr_r			<= 0;
+	//mem_clk_div_r		<= 1;
 	//gain_r			<= 30000;
 	//nsamp_r			<= 70/N_DDS;
 	//outsel_r		<= 2;	// 0: prod, 1: dds, 2: mem
@@ -376,6 +383,7 @@ initial begin
 	//freq_r			<= freq_calc(100, N_DDS, 3);
 	//phase_r			<= 0;
 	//addr_r			<= 5;
+	//mem_clk_div_r		<= 1;
 	//gain_r			<= 30000;
 	//nsamp_r			<= 670/N_DDS;
 	//outsel_r		<= 1;	// 0: prod, 1: dds, 2: mem
