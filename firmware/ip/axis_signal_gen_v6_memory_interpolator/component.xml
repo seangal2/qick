@@ -437,7 +437,7 @@
         <spirit:parameters>
           <spirit:parameter>
             <spirit:name>viewChecksum</spirit:name>
-            <spirit:value>11538f60</spirit:value>
+            <spirit:value>da50e617</spirit:value>
           </spirit:parameter>
         </spirit:parameters>
       </spirit:view>
@@ -456,7 +456,7 @@
         <spirit:parameters>
           <spirit:parameter>
             <spirit:name>viewChecksum</spirit:name>
-            <spirit:value>11538f60</spirit:value>
+            <spirit:value>da50e617</spirit:value>
           </spirit:parameter>
         </spirit:parameters>
       </spirit:view>
@@ -471,6 +471,21 @@
           <spirit:parameter>
             <spirit:name>viewChecksum</spirit:name>
             <spirit:value>e51fb623</spirit:value>
+          </spirit:parameter>
+        </spirit:parameters>
+      </spirit:view>
+      <spirit:view>
+        <spirit:name>xilinx_testbench</spirit:name>
+        <spirit:displayName>Test Bench</spirit:displayName>
+        <spirit:envIdentifier>:vivado.xilinx.com:simulation.testbench</spirit:envIdentifier>
+        <spirit:modelName>tb</spirit:modelName>
+        <spirit:fileSetRef>
+          <spirit:localName>xilinx_testbench_view_fileset</spirit:localName>
+        </spirit:fileSetRef>
+        <spirit:parameters>
+          <spirit:parameter>
+            <spirit:name>viewChecksum</spirit:name>
+            <spirit:value>2b9d2651</spirit:value>
           </spirit:parameter>
         </spirit:parameters>
       </spirit:view>
@@ -1080,7 +1095,7 @@
       <spirit:file>
         <spirit:name>src/axis_signal_gen_v6_memory_interpolator.v</spirit:name>
         <spirit:fileType>verilogSource</spirit:fileType>
-        <spirit:userFileType>CHECKSUM_49c7e8e9</spirit:userFileType>
+        <spirit:userFileType>CHECKSUM_44569026</spirit:userFileType>
       </spirit:file>
     </spirit:fileSet>
     <spirit:fileSet>
@@ -1164,6 +1179,14 @@
         <spirit:userFileType>XGUI_VERSION_2</spirit:userFileType>
       </spirit:file>
     </spirit:fileSet>
+    <spirit:fileSet>
+      <spirit:name>xilinx_testbench_view_fileset</spirit:name>
+      <spirit:file>
+        <spirit:name>src/tb/tb.sv</spirit:name>
+        <spirit:fileType>systemVerilogSource</spirit:fileType>
+        <spirit:userFileType>USED_IN_simulation</spirit:userFileType>
+      </spirit:file>
+    </spirit:fileSet>
   </spirit:fileSets>
   <spirit:description>AXIS Signal Generator V6 with memory interpolator, Phase coherent with Phase reset.</spirit:description>
   <spirit:parameters>
@@ -1193,7 +1216,7 @@
       <xilinx:displayName>AXIS Signal Generator V6 with memory interpolator</xilinx:displayName>
       <xilinx:definitionSource>package_project</xilinx:definitionSource>
       <xilinx:coreRevision>4</xilinx:coreRevision>
-      <xilinx:coreCreationDateTime>2022-04-08T14:14:02Z</xilinx:coreCreationDateTime>
+      <xilinx:coreCreationDateTime>2024-10-21T18:25:51Z</xilinx:coreCreationDateTime>
       <xilinx:tags>
         <xilinx:tag xilinx:name="ui.data.coregen.dd@108ce282_ARCHIVE_LOCATION">/home/lstefana/v20.2/ip/axis_signal_gen_v6_memory_interpolator</xilinx:tag>
         <xilinx:tag xilinx:name="ui.data.coregen.dd@6eccca9b_ARCHIVE_LOCATION">/home/lstefana/v20.2/ip/axis_signal_gen_v6_memory_interpolator</xilinx:tag>
@@ -1230,13 +1253,13 @@
       </xilinx:tags>
     </xilinx:coreExtensions>
     <xilinx:packagingInfo>
-      <xilinx:xilinxVersion>2020.2</xilinx:xilinxVersion>
+      <xilinx:xilinxVersion>2023.1</xilinx:xilinxVersion>
       <xilinx:checksum xilinx:scope="busInterfaces" xilinx:value="15f072e0"/>
       <xilinx:checksum xilinx:scope="memoryMaps" xilinx:value="769c350d"/>
-      <xilinx:checksum xilinx:scope="fileGroups" xilinx:value="f3f7965b"/>
+      <xilinx:checksum xilinx:scope="fileGroups" xilinx:value="068fb490"/>
       <xilinx:checksum xilinx:scope="ports" xilinx:value="055c05dc"/>
       <xilinx:checksum xilinx:scope="hdlParameters" xilinx:value="ceb85977"/>
-      <xilinx:checksum xilinx:scope="parameters" xilinx:value="81f91a94"/>
+      <xilinx:checksum xilinx:scope="parameters" xilinx:value="ead95d72"/>
     </xilinx:packagingInfo>
   </spirit:vendorExtensions>
 </spirit:component>

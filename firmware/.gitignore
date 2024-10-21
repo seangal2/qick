@@ -1,1 +1,7 @@
 top*/
+**/axi_mst_0/hdl/
+**/axi_mst_0/sim/
+**/axi_mst_0/sysc/
+**/axi_mst_0/doc/
+**/axi_mst_0/synth/
+**/axi_mst_0/axi_mst_0_ooc.xdc

@@ -4,7 +4,7 @@
     "xci_name": "dds_compiler_0",
     "component_reference": "xilinx.com:ip:dds_compiler:6.0",
     "ip_revision": "22",
-    "gen_directory": "../../../../test_axis_sg_int4_v1/top/top.tmp/axis_signal_gen_v6_memory_interpolator_v1_0_project/axis_signal_gen_v6_memory_interpolator_v1_0_project.gen/sources_1/ip/dds_compiler_0",
+    "gen_directory": "../../../../../../../xilinxresearch/axis_signal_gen_v6_memory_interpolator_v1_0_project/axis_signal_gen_v6_memory_interpolator_v1_0_project.gen/sources_1/ip/dds_compiler_0",
     "parameters": {
       "component_parameters": {
         "Component_Name": [ { "value": "dds_compiler_0", "resolve_type": "user", "usage": "all" } ],
@@ -169,7 +169,7 @@
         "PREFHDL": [ { "value": "VERILOG" } ],
         "SILICON_REVISION": [ { "value": "" } ],
         "SIMULATOR_LANGUAGE": [ { "value": "MIXED" } ],
-        "SPEEDGRADE": [ { "value": "-2" } ],
+        "SPEEDGRADE": [ { "value": "-1" } ],
         "STATIC_POWER": [ { "value": "" } ],
         "TEMPERATURE_GRADE": [ { "value": "E" } ],
         "USE_RDI_CUSTOMIZATION": [ { "value": "TRUE" } ],
@@ -179,7 +179,7 @@
         "IPCONTEXT": [ { "value": "IP_Flow" } ],
         "IPREVISION": [ { "value": "22" } ],
         "MANAGED": [ { "value": "TRUE" } ],
-        "OUTPUTDIR": [ { "value": "../../../../test_axis_sg_int4_v1/top/top.tmp/axis_signal_gen_v6_memory_interpolator_v1_0_project/axis_signal_gen_v6_memory_interpolator_v1_0_project.gen/sources_1/ip/dds_compiler_0" } ],
+        "OUTPUTDIR": [ { "value": "../../../../../../../xilinxresearch/axis_signal_gen_v6_memory_interpolator_v1_0_project/axis_signal_gen_v6_memory_interpolator_v1_0_project.gen/sources_1/ip/dds_compiler_0" } ],
         "SELECTEDSIMMODEL": [ { "value": "" } ],
         "SHAREDDIR": [ { "value": "." } ],
         "SWVERSION": [ { "value": "2023.1" } ],
