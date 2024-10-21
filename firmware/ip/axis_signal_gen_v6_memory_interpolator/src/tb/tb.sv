@@ -268,7 +268,7 @@ initial begin
 	
 	wait (tb_load_mem);
 
-	fd = $fopen("../../../../../../gauss.txt","r");
+	fd = $fopen("../../../../../gauss.txt","r");
 
 	wait (s0_axis_tready);
 
@@ -428,7 +428,7 @@ initial begin
 	shortint real_d;
 
 	// Output file.
-	fd = $fopen("../../../../../../dout.csv","w");
+	fd = $fopen("../../../../../dout.csv","w");
 
 	// Data format.
 	$fdisplay(fd, "valid, idx, real");
