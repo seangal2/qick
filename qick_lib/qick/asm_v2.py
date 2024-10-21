@@ -1385,7 +1385,7 @@ class AbsRegisterManager(ABC):
     def params2pulse(self, params) -> QickPulse:
         ...
 
-    def cfg2reg(self, outsel, mode, stdysel, phrst):
+    def cfg2reg(self, outsel, mode, stdysel, phrst, mem_clk_div):
         """Creates generator config register value, by setting flags.
         The bit ordering here is the one expected by the input to sg_translator.
         The translator will remap the bits to whatever the peripheral expects.
@@ -1418,6 +1418,9 @@ class AbsRegisterManager(ABC):
         phrst : int
         If 1, it resets the phase coherent accumulator. The default is 0.
 
+        mem_clk_div : int
+        The memory clock divider. The default is 1.
+
         Returns
         -------
         int
@@ -1427,11 +1430,17 @@ class AbsRegisterManager(ABC):
         if mode is None: mode = "oneshot"
         if stdysel is None: stdysel = "zero"
         if phrst is None: phrst = 0
+        if mem_clk_div is None: mem_clk_div = 1
         outsel_reg = {"product": 0, "dds": 1, "input": 2, "zero": 3}[outsel]
         mode_reg = {"oneshot": 0, "periodic": 1}[mode]
         stdysel_reg = {"last": 0, "zero": 1}[stdysel]
+        if mem_clk_div > 63:
+            raise ValueError("mem_clk_div must be less than 64 (6 - bits)")
+        if mem_clk_div < 1:
+            raise ValueError("mem_clk_div must be greater than 0")
 
         cfgreg = phrst*0b010000 + stdysel_reg*0b01000 + mode_reg*0b00100 + outsel_reg
+        cfgreg += mem_clk_div << 5
         if self.tmux_ch is not None:
             cfgreg += (self.tmux_ch << 8)
         return cfgreg
