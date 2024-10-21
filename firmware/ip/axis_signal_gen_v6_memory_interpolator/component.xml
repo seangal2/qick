@@ -1165,7 +1165,7 @@
       </spirit:file>
     </spirit:fileSet>
   </spirit:fileSets>
-  <spirit:description>AXIS Signal Generator V6, Phase coherent with Phase reset.</spirit:description>
+  <spirit:description>AXIS Signal Generator V6 with memory interpolator, Phase coherent with Phase reset.</spirit:description>
   <spirit:parameters>
     <spirit:parameter>
       <spirit:name>N</spirit:name>
@@ -1190,7 +1190,7 @@
       <xilinx:taxonomies>
         <xilinx:taxonomy>/UserIP</xilinx:taxonomy>
       </xilinx:taxonomies>
-      <xilinx:displayName>AXIS Signal Generator V6</xilinx:displayName>
+      <xilinx:displayName>AXIS Signal Generator V6 with memory interpolator</xilinx:displayName>
       <xilinx:definitionSource>package_project</xilinx:definitionSource>
       <xilinx:coreRevision>4</xilinx:coreRevision>
       <xilinx:coreCreationDateTime>2022-04-08T14:14:02Z</xilinx:coreCreationDateTime>
