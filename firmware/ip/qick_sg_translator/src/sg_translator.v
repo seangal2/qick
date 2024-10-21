@@ -52,6 +52,7 @@ wire [31:0] freq, phase, gain, nsamp ;
 wire [23:0] addr ;
 wire [23:0] conf ;
 
+wire [5:0] mem_clk_div ;
 wire [1:0] outsel ;
 wire mode, stdysel, phrst;
 

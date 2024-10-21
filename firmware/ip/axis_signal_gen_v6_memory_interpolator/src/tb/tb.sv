@@ -61,9 +61,9 @@ wire					m_axis_tvalid;
 reg		[31:0]			freq_r;
 reg		[31:0]			phase_r;
 reg		[15:0]			addr_r;
-reg		[15:0]			mem_clk_div_r;
+reg		[5:0]			mem_clk_div_r;
 reg		[15:0]			gain_r;
-reg		[15:0]			nsamp_r;
+reg		[31:0]			nsamp_r;
 reg		[1:0]			outsel_r;
 reg						mode_r;
 reg						stdysel_r;
@@ -178,7 +178,13 @@ axis_signal_gen_v6_memory_interpolator
 // VIP Agents
 axi_mst_0_mst_t 	axi_mst_0_agent;
 
-assign s1_axis_tdata = {{10{1'b0}},phrst_r,stdysel_r,mode_r,outsel_r,nsamp_r,{16{1'b0}},gain_r,mem_clk_div_r,addr_r,phase_r,freq_r};
+// |------------|-------|---------|------|------------|------------|------------|-----------|-----------|-------------|----------|----------|---------|
+// | 159 .. 149 |   148 |     147 |  146 | 145 .. 144 | 143 ..           .. 112 | 111 .. 96 | 95 .. 86  |  85 .. 80   | 79 .. 64 | 63 .. 32 | 31 .. 0 |
+// |------------|-------|---------|------|------------|------------|------------|-----------|-----------|-------------|----------|----------|---------|
+// |       xxxx | phrst | stdysel | mode |     outsel |      nsamp              |      gain | xxx       | mem_clk_div |     addr |    phase |    freq |
+// |------------|-------|---------|------|------------|------------|------------|-----------|-----------|-------------|----------|----------|---------|
+
+assign s1_axis_tdata = {{10{1'b0}},phrst_r,stdysel_r,mode_r,outsel_r,nsamp_r,gain_r,{10{1'b0}},mem_clk_div_r,addr_r,phase_r,freq_r};
 
 initial begin
 	// Create agents.
@@ -262,7 +268,7 @@ initial begin
 	
 	wait (tb_load_mem);
 
-	fd = $fopen("/home/user/Desktop/gauss.txt","r");
+	fd = $fopen("../../../../../../gauss.txt","r");
 
 	wait (s0_axis_tready);
 
@@ -358,9 +364,9 @@ initial begin
 	freq_r			<= freq_calc(100, N_DDS, 13);
 	phase_r			<= 0;
 	addr_r			<= 0;
-	mem_clk_div_r	<= 1024;
+	mem_clk_div_r	<= 8;
 	gain_r			<= 30000;
-	nsamp_r			<= 16*400/N_DDS;
+	nsamp_r			<= 8*400/N_DDS;
 	outsel_r		<= 0;	// 0: prod, 1: dds, 2: mem
 	mode_r			<= 0;	// 0: nsamp, 1: periodic
 	stdysel_r		<= 1;	// 0: last, 1: zero.
@@ -422,7 +428,7 @@ initial begin
 	shortint real_d;
 
 	// Output file.
-	fd = $fopen("/home/user/Desktop/dout.csv","w");
+	fd = $fopen("../../../../../../dout.csv","w");
 
 	// Data format.
 	$fdisplay(fd, "valid, idx, real");
