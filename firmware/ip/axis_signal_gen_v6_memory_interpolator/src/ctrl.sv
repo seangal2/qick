@@ -130,6 +130,7 @@ reg		[15:0]	addr_cnt_r5;
 reg		[15:0]	addr_cnt_r6;
 wire    [15:0]  mem_clk_div_int;
 reg     [15:0]  addr_cnt_div; // New register to handle divided address count
+reg     [15:0]  mem_clk_div_reg; // New register to handle divided address count
 
 // Gain.
 wire	[15:0]	gain_int;
@@ -347,9 +348,10 @@ always @(posedge clk) begin
 		// Address.
 		if (rd_en_r2) begin
 			addr_cnt	<= addr_int;
+			mem_clk_div_reg <= mem_clk_div_int;
 			addr_cnt_div <= 0; // Reset divided counter on new read
 		end else begin
-			if (addr_cnt_div == mem_clk_div_int - 1) begin
+			if (addr_cnt_div == mem_clk_div_reg - 1) begin
                 addr_cnt <= addr_cnt + 1;
                 addr_cnt_div <= 0; // Reset divided counter
             end else begin

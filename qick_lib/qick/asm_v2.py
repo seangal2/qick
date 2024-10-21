@@ -1494,8 +1494,8 @@ class StandardGenManager(AbsGenManager):
             'flat_top': ['ro_ch', 'phrst', 'stdysel']}
     PARAMS_NUMERIC = ['freq', 'phase', 'gain', 'length']
 
-    def params2wave(self, freqreg, phasereg, gainreg, lenreg, env=0, mode=None, outsel=None, stdysel=None, phrst=None):
-        confreg = self.cfg2reg(outsel=outsel, mode=mode, stdysel=stdysel, phrst=phrst)
+    def params2wave(self, freqreg, phasereg, gainreg, lenreg, env=0, mode=None, outsel=None, stdysel=None, phrst=None, mem_clk_div=None):
+        confreg = self.cfg2reg(outsel=outsel, mode=mode, stdysel=stdysel, phrst=phrst, mem_clk_div=mem_clk_div)
         if isinstance(lenreg, QickRawParam):
             if lenreg.maxval() >= 2**16 or lenreg.minval() < 3:
                 raise RuntimeError("Pulse length of %d cycles is out of range (exceeds 16 bits, or less than 3) - use multiple pulses, or zero-pad the envelope" % (lenreg))
@@ -1530,9 +1530,13 @@ class StandardGenManager(AbsGenManager):
         par : dict
             Pulse parameters
         """
-        phrst_gens = ['axis_signal_gen_v6', 'axis_sg_int4_v1', 'axis_sg_int4_v2']
+        phrst_gens = ['axis_signal_gen_v6', 'axis_signal_gen_v6_memory_interpolator', 'axis_sg_int4_v1', 'axis_sg_int4_v2']
         if par.get('phrst') is not None and self.chcfg['type'] not in phrst_gens:
             raise RuntimeError("phrst not supported for %s, only for %s" % (self.chcfg['type'], phrst_gens))
+
+        mem_clk_div_gens = ['axis_signal_gen_v6_memory_interpolator']
+        if par.get('mem_clk_div') is not None and self.chcfg['type'] not in mem_clk_div_gens:
+            raise RuntimeError("mem_clk_div not supported for %s, only for %s" % (self.chcfg['type'], mem_clk_div_gens))
 
         pulse = QickPulse(self.prog, self, par)
 
@@ -1577,12 +1581,12 @@ class StandardGenManager(AbsGenManager):
             w['lenreg'] = self.prog.us2cycles(gen_ch=self.ch, us=par['length'])
             pulse.add_wave(self.params2wave(**w))
         elif par['style']=='arb':
-            w.update({k:par.get(k) for k in ['mode', 'outsel', 'stdysel', 'phrst']})
+            w.update({k:par.get(k) for k in ['mode', 'outsel', 'stdysel', 'phrst', 'mem_clk_div']})
             w['env'] = env_addr
             w['lenreg'] = env_length
             pulse.add_wave(self.params2wave(**w))
         elif par['style']=='flat_top':
-            w.update({k:par.get(k) for k in ['stdysel']})
+            w.update({k:par.get(k) for k in ['stdysel', 'mem_clk_div']})
             w['mode'] = 'oneshot'
             if env_length % 2 != 0:
                 logger.warning("Envelope length %d is an odd number of fabric cycles.\n"
@@ -1751,6 +1755,7 @@ class QickProgramV2(AsmV2, AbsQickProgram):
     gentypes = {'axis_signal_gen_v4': StandardGenManager,
                 'axis_signal_gen_v5': StandardGenManager,
                 'axis_signal_gen_v6': StandardGenManager,
+                'axis_signal_gen_v6_memory_interpolator': StandardGenManager,
                 'axis_sg_int4_v1': StandardGenManager,
                 'axis_sg_int4_v2': StandardGenManager,
                 'axis_sg_mux4_v1': MultiplexedGenManager,

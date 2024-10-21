@@ -96,6 +96,7 @@ for (ii = 0; ii < N_DDS; ii = ii + 1) begin : GEN_debug
     assign dout_ii[ii] = m_axis_tdata[16*ii +: 16];
 end
 endgenerate
+
 axi_mst_0 axi_mst_0_i
 	(
 		.aclk			(s_axi_aclk		),
@@ -261,7 +262,7 @@ initial begin
 	
 	wait (tb_load_mem);
 
-	fd = $fopen("../../../../../tb/gauss.txt","r");
+	fd = $fopen("/home/user/Desktop/gauss.txt","r");
 
 	wait (s0_axis_tready);
 
@@ -346,6 +347,25 @@ initial begin
 	stdysel_r		<= 1;	// 0: last, 1: zero.
 	phrst_r			<= 0;
 
+	@(posedge aclk);
+	s1_axis_tvalid	<= 0;
+
+	#1000;
+
+	@(posedge aclk);
+	$display("t = %0t (mem_clk_div=16 pulse)", $time);
+	s1_axis_tvalid	<= 1;
+	freq_r			<= freq_calc(100, N_DDS, 13);
+	phase_r			<= 0;
+	addr_r			<= 0;
+	mem_clk_div_r	<= 1024;
+	gain_r			<= 30000;
+	nsamp_r			<= 16*400/N_DDS;
+	outsel_r		<= 0;	// 0: prod, 1: dds, 2: mem
+	mode_r			<= 0;	// 0: nsamp, 1: periodic
+	stdysel_r		<= 1;	// 0: last, 1: zero.
+	phrst_r			<= 0;
+
 	//@(posedge aclk);
 	//$display("t = %0t", $time);
 	//s1_axis_tvalid	<= 1;
@@ -402,7 +422,7 @@ initial begin
 	shortint real_d;
 
 	// Output file.
-	fd = $fopen("../../../../../tb/dout.csv","w");
+	fd = $fopen("/home/user/Desktop/dout.csv","w");
 
 	// Data format.
 	$fdisplay(fd, "valid, idx, real");
