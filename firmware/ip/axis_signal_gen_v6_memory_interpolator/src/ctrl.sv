@@ -127,10 +127,14 @@ reg		[15:0]	addr_cnt_r2;
 reg		[15:0]	addr_cnt_r3;
 reg		[15:0]	addr_cnt_r4;
 reg		[15:0]	addr_cnt_r5;
-reg		[15:0]	addr_cnt_r6;
+// reg		[15:0]	addr_cnt_r6;
 wire    [15:0]  mem_clk_div_int;
 reg     [15:0]  addr_cnt_div; // New register to handle divided address count
 reg     [15:0]  mem_clk_div_reg; // New register to handle divided address count
+// New registers for pipelined comparison and increment logic
+reg		[15:0]	addr_cnt_div_next;
+reg				addr_cnt_increment;
+
 
 // Gain.
 wire	[15:0]	gain_int;
@@ -242,8 +246,11 @@ always @(posedge clk) begin
 		addr_cnt_r3		<= 0;
 		addr_cnt_r4		<= 0;
 		addr_cnt_r5		<= 0;
-		addr_cnt_r6		<= 0;
+		// addr_cnt_r6		<= 0;
 		addr_cnt_div	<= 0;
+		addr_cnt_div_next <= 0;
+		addr_cnt_increment <= 0;
+		mem_clk_div_reg	<= 0;
 
 		// Gain.
 		gain_r1			<= 0;
@@ -346,25 +353,53 @@ always @(posedge clk) begin
 		sync_reg_r7		<= sync_reg_r6;
 
 		// Address.
-		if (rd_en_r2) begin
-			addr_cnt	<= addr_int;
-			mem_clk_div_reg <= mem_clk_div_int;
-			addr_cnt_div <= 0; // Reset divided counter on new read
-		end else begin
-			if (addr_cnt_div == mem_clk_div_reg - 1) begin
+		
+		// OLD design - does not meet timing. 
+		// if (rd_en_r2) begin
+		// 	addr_cnt	<= addr_int;
+		// 	mem_clk_div_reg <= mem_clk_div_int;
+		// 	addr_cnt_div <= 0; // Reset divided counter on new read
+		// end else begin
+		// 	if (addr_cnt_div == mem_clk_div_reg - 1) begin
+        //         addr_cnt <= addr_cnt + 1;
+        //         addr_cnt_div <= 0; // Reset divided counter
+        //     end else begin
+        //         addr_cnt_div <= addr_cnt_div + 1; // Increment divided counter
+        //     end
+		// end
+
+
+		// First stage: compare and prepare next value
+        if (mem_clk_div_reg == 1 || mem_clk_div_reg == 0) begin // We will treat 0 as 1 in case there is a user error.
+            addr_cnt_div_next <= 0;
+            addr_cnt_increment <= 1; // Always increment when div is 1
+        end else if (addr_cnt_div == mem_clk_div_reg - 1) begin
+            addr_cnt_div_next <= 0;
+            addr_cnt_increment <= 1;
+        end else begin
+            addr_cnt_div_next <= addr_cnt_div + 1;
+            addr_cnt_increment <= 0;
+        end
+
+		// Second stage: update counters
+        if (rd_en_r2) begin
+            addr_cnt <= addr_int;
+            mem_clk_div_reg <= mem_clk_div_int;
+            addr_cnt_div <= 0;
+        end else begin
+            addr_cnt_div <= addr_cnt_div_next;
+            if (addr_cnt_increment || mem_clk_div_int == 0 || mem_clk_div_int == 1) begin // When div is 0 or 1, we will always increment (no division). We need a fast path for these cases here since the previous stage is not preformed yet.
                 addr_cnt <= addr_cnt + 1;
-                addr_cnt_div <= 0; // Reset divided counter
-            end else begin
-                addr_cnt_div <= addr_cnt_div + 1; // Increment divided counter
             end
-		end
+        end
+		
 
 		addr_cnt_r1		<= addr_cnt;
 		addr_cnt_r2		<= addr_cnt_r1;
 		addr_cnt_r3		<= addr_cnt_r2;
 		addr_cnt_r4		<= addr_cnt_r3;
 		addr_cnt_r5		<= addr_cnt_r4;
-		addr_cnt_r6		<= addr_cnt_r5;
+		// addr_cnt_r6		<= addr_cnt_r5;
 
 		// Gain.
 		gain_r1			<= gain_int;
@@ -501,7 +536,7 @@ assign load_int 	= rd_en_int & ~fifo_empty_i;
 
 // Assign outputs.
 assign fifo_rd_en_o	= rd_en_int;
-assign mem_addr_o	= addr_cnt_r6;
+assign mem_addr_o	= addr_cnt_r5;
 assign gain_o		= gain_r7;
 assign src_o		= outsel_r7;
 assign stdy_o		= stdysel_r7;
