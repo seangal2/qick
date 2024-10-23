@@ -1668,9 +1668,13 @@ Port;FD4A0000;FD4AFFFF;1|FPD;DPDMA;FD4C0000;FD4CFFFF;1|FPD;DDR_XMPU5_CFG;FD05000
 
   # Create instance: axis_signal_gen_v6_m_0, and set properties
   set axis_signal_gen_v6_m_0 [ create_bd_cell -type ip -vlnv user.org:user:axis_signal_gen_v6_memory_interpolator:1.0 axis_signal_gen_v6_m_0 ]
+  set_property CONFIG.N {10} $axis_signal_gen_v6_m_0
+
 
   # Create instance: axis_signal_gen_v6_m_1, and set properties
   set axis_signal_gen_v6_m_1 [ create_bd_cell -type ip -vlnv user.org:user:axis_signal_gen_v6_memory_interpolator:1.0 axis_signal_gen_v6_m_1 ]
+  set_property CONFIG.N {10} $axis_signal_gen_v6_m_1
+
 
   # Create interface connections
   connect_bd_intf_net -intf_net adc0_clk_1 [get_bd_intf_ports adc0_clk] [get_bd_intf_pins usp_rf_data_converter_0/adc0_clk]
@@ -1841,8 +1845,8 @@ Port;FD4A0000;FD4AFFFF;1|FPD;DPDMA;FD4C0000;FD4CFFFF;1|FPD;DDR_XMPU5_CFG;FD05000
   # Perform GUI Layout
   regenerate_bd_layout -layout_string {
    "ActiveEmotionalView":"Default View",
-   "Default View_ScaleFactor":"0.240261",
-   "Default View_TopLeft":"146,-574",
+   "Default View_ScaleFactor":"0.634052",
+   "Default View_TopLeft":"953,989",
    "ExpandedHierarchyInLayout":"",
    "guistr":"# # String gsaved with Nlview 7.5.8 2022-09-21 7111 VDI=41 GEI=38 GUI=JA:10.0 threadsafe
 #  -string -flagsOSRD
@@ -2038,7 +2042,6 @@ pagesize -pg 1 -db -bbox -sgen -170 -130 5500 3560
   # Restore current instance
   current_bd_instance $oldCurInst
 
-  validate_bd_design
   save_bd_design
 }
 # End of create_root_design()
@@ -2050,4 +2053,6 @@ pagesize -pg 1 -db -bbox -sgen -170 -130 5500 3560
 
 create_root_design ""
 
+
+common::send_gid_msg -ssname BD::TCL -id 2053 -severity "WARNING" "This Tcl script was generated from a block design that has not been validated. It is possible that design <$design_name> may result in errors during validation."
 
