@@ -29,8 +29,9 @@ wire			fifo_full;
 reg		[31:0]	freq_r;
 reg		[31:0]	phase_r;
 reg		[15:0]	addr_r;
+reg		[5:0]	mem_clk_div_r;
 reg		[15:0]	gain_r;
-reg		[15:0]	nsamp_r;
+reg		[31:0]	nsamp_r;
 reg		[1:0]	outsel_r;
 reg				mode_r;
 reg				stdysel_r;
@@ -117,9 +118,9 @@ assign fifo_din = {	{11{1'b0}}	,
 					mode_r		,
 					outsel_r	,
 					nsamp_r		,
-					{16{1'b0}}	,
 					gain_r		,
-					{16{1'b0}}	,
+					{10{1'b0}}	,
+					mem_clk_div_r,
 					addr_r		,
 					phase_r		,
 					freq_r		};
@@ -130,6 +131,7 @@ initial begin
 	freq_r			<= 0;
 	phase_r			<= 0;
 	addr_r			<= 0;
+	mem_clk_div_r	<= 0;
 	gain_r			<= 0;
 	nsamp_r			<= 0;
 	outsel_r		<= 0;
@@ -147,6 +149,7 @@ initial begin
 	phase_r		<= 0;
 	addr_r		<= 50;
 	gain_r		<= 40;
+	mem_clk_div_r	<= 0;
 	nsamp_r		<= 10;
 	outsel_r	<= 2;
 	mode_r		<= 1;
@@ -165,6 +168,7 @@ initial begin
 	addr_r		<= 5;
 	gain_r		<= 4;
 	nsamp_r		<= 5;
+	mem_clk_div_r	<= 0;
 	outsel_r	<= 2;
 	mode_r		<= 0;
 	stdysel_r	<= 1;

@@ -7,7 +7,7 @@
 // freq 	: 32 bits
 // phase 	: 32 bits
 // addr 	: 16 bits
-// mem_clk_div 	: 6 bits
+// mem_clk_div 	: 6 bits -- 0 means no division, 1 means divide by 2, 2 means divide by 3, etc.
 // gain 	: 16 bits
 // nsamp 	: 32 bits -- represent the number of full speed samples
 // outsel 	: 2 bits
@@ -127,10 +127,10 @@ reg		[15:0]	addr_cnt_r2;
 reg		[15:0]	addr_cnt_r3;
 reg		[15:0]	addr_cnt_r4;
 reg		[15:0]	addr_cnt_r5;
-// reg		[15:0]	addr_cnt_r6;
-wire    [15:0]  mem_clk_div_int;
+reg		[15:0]	addr_cnt_r6;
+wire    [5:0]  mem_clk_div_int;
 reg     [15:0]  addr_cnt_div; // New register to handle divided address count
-reg     [15:0]  mem_clk_div_reg; // New register to handle divided address count
+reg     [5:0]  mem_clk_div_reg; // New register to handle divided address count
 // New registers for pipelined comparison and increment logic
 reg		[15:0]	addr_cnt_div_next;
 reg				addr_cnt_increment;
@@ -147,7 +147,7 @@ reg		[15:0]	gain_r6;
 reg		[15:0]	gain_r7;
 
 // Number of samples.
-wire	[15:0]	nsamp_int;
+wire	[31:0]	nsamp_int;
 
 // Output selection.
 wire	[1:0]	outsel_int;
@@ -246,7 +246,7 @@ always @(posedge clk) begin
 		addr_cnt_r3		<= 0;
 		addr_cnt_r4		<= 0;
 		addr_cnt_r5		<= 0;
-		// addr_cnt_r6		<= 0;
+		addr_cnt_r6		<= 0;
 		addr_cnt_div	<= 0;
 		addr_cnt_div_next <= 0;
 		addr_cnt_increment <= 0;
@@ -370,10 +370,10 @@ always @(posedge clk) begin
 
 
 		// First stage: compare and prepare next value
-        if (mem_clk_div_reg == 1 || mem_clk_div_reg == 0) begin // We will treat 0 as 1 in case there is a user error.
+        if (mem_clk_div_reg == 0) begin // We will treat 0 as 1 in case there is a user error.
             addr_cnt_div_next <= 0;
-            addr_cnt_increment <= 1; // Always increment when div is 1
-        end else if (addr_cnt_div == mem_clk_div_reg - 1) begin
+            addr_cnt_increment <= 1; // Always increment when no division
+        end else if (addr_cnt_div == mem_clk_div_reg) begin // no -1 since we are using 0 as 1
             addr_cnt_div_next <= 0;
             addr_cnt_increment <= 1;
         end else begin
@@ -388,7 +388,7 @@ always @(posedge clk) begin
             addr_cnt_div <= 0;
         end else begin
             addr_cnt_div <= addr_cnt_div_next;
-            if (addr_cnt_increment || mem_clk_div_int == 0 || mem_clk_div_int == 1) begin // When div is 0 or 1, we will always increment (no division). We need a fast path for these cases here since the previous stage is not preformed yet.
+            if (addr_cnt_increment || mem_clk_div_reg == 0) begin // When div is 0, we will always increment (no division). We need a fast path for these cases here since the previous stage is not preformed yet.
                 addr_cnt <= addr_cnt + 1;
             end
         end
@@ -399,7 +399,7 @@ always @(posedge clk) begin
 		addr_cnt_r3		<= addr_cnt_r2;
 		addr_cnt_r4		<= addr_cnt_r3;
 		addr_cnt_r5		<= addr_cnt_r4;
-		// addr_cnt_r6		<= addr_cnt_r5;
+		addr_cnt_r6		<= addr_cnt_r5;
 
 		// Gain.
 		gain_r1			<= gain_int;
@@ -479,7 +479,7 @@ assign phase_int		= fifo_dout_r[63:32];
 assign addr_int			= fifo_dout_r[79:64];
 assign mem_clk_div_int	= fifo_dout_r[95:80];
 assign gain_int			= fifo_dout_r[111:96];
-assign nsamp_int		= fifo_dout_r[143:128];
+assign nsamp_int		= fifo_dout_r[143:112];
 assign outsel_int		= fifo_dout_r[145:144];
 assign mode_int			= fifo_dout_r[146];
 assign stdysel_int		= fifo_dout_r[147];
@@ -536,7 +536,7 @@ assign load_int 	= rd_en_int & ~fifo_empty_i;
 
 // Assign outputs.
 assign fifo_rd_en_o	= rd_en_int;
-assign mem_addr_o	= addr_cnt_r5;
+assign mem_addr_o	= addr_cnt_r6;
 assign gain_o		= gain_r7;
 assign src_o		= outsel_r7;
 assign stdy_o		= stdysel_r7;
