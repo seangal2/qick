@@ -177,6 +177,44 @@ initial begin
 	@(posedge clk);
 	fifo_wr_en	<= 0;
 
+
+	#1000;
+
+	@(posedge clk);
+	fifo_wr_en	<= 1;
+	freq_r		<= 1000;
+	phase_r		<= 0;
+	addr_r		<= 64;
+	gain_r		<= 16;
+	nsamp_r		<= 100;
+	mem_clk_div_r	<= 1;
+	outsel_r	<= 2;
+	mode_r		<= 0;
+	stdysel_r	<= 0;
+	phrst_r		<= 0;
+
+	@(posedge clk);
+	fifo_wr_en	<= 0;
+
+
+	#1000;
+
+	@(posedge clk);
+	fifo_wr_en	<= 1;
+	freq_r		<= 1000;
+	phase_r		<= 0;
+	addr_r		<= 32;
+	gain_r		<= 10;
+	nsamp_r		<= 100;
+	mem_clk_div_r	<= 7;
+	outsel_r	<= 2;
+	mode_r		<= 0;
+	stdysel_r	<= 1;
+	phrst_r		<= 0;
+
+	@(posedge clk);
+	fifo_wr_en	<= 0;
+
 	#10000;
 	
 end

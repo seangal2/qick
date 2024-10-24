@@ -369,26 +369,30 @@ always @(posedge clk) begin
 		// end
 
 
-		// First stage: compare and prepare next value
-        if (mem_clk_div_reg == 0) begin // We will treat 0 as 1 in case there is a user error.
-            addr_cnt_div_next <= 0;
-            addr_cnt_increment <= 1; // Always increment when no division
-        end else if (addr_cnt_div == mem_clk_div_reg) begin // no -1 since we are using 0 as 1
-            addr_cnt_div_next <= 0;
-            addr_cnt_increment <= 1;
-        end else begin
-            addr_cnt_div_next <= addr_cnt_div + 1;
-            addr_cnt_increment <= 0;
-        end
-
-		// Second stage: update counters
         if (rd_en_r2) begin
             addr_cnt <= addr_int;
             mem_clk_div_reg <= mem_clk_div_int;
-            addr_cnt_div <= 0;
+			if (mem_clk_div_int == 0) begin
+				addr_cnt_div <= 0;
+				addr_cnt_increment <= 1;
+			end else begin
+				addr_cnt_div <= 1;
+				addr_cnt_increment <= 0;
+			end
         end else begin
-            addr_cnt_div <= addr_cnt_div_next;
-            if (addr_cnt_increment || mem_clk_div_reg == 0) begin // When div is 0, we will always increment (no division). We need a fast path for these cases here since the previous stage is not preformed yet.
+			// First stage: check if we need to increment the address counter
+			if (mem_clk_div_reg == 0) begin
+				addr_cnt_increment <= 1;
+			end else if (addr_cnt_div >= mem_clk_div_reg) begin
+				addr_cnt_increment <= 1;
+				addr_cnt_div <= 0;
+			end else begin
+				addr_cnt_increment <= 0;
+				addr_cnt_div <= addr_cnt_div + 1;
+			end
+
+			// Second stage: update address counter
+            if (addr_cnt_increment) begin
                 addr_cnt <= addr_cnt + 1;
             end
         end

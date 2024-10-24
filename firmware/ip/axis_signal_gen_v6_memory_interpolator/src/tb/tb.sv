@@ -312,7 +312,7 @@ initial begin
 	freq_r			<= freq_calc(100, N_DDS, 4);	// 120 MHz.
 	phase_r			<= 0;
 	addr_r			<= 22;
-	mem_clk_div_r	<= 1;
+	mem_clk_div_r	<= 0;
 	gain_r			<= 12000;
 	nsamp_r			<= 80;
 	outsel_r		<= 1;	// 0: prod, 1: dds, 2: mem
@@ -326,7 +326,7 @@ initial begin
 	freq_r			<= freq_calc(100, N_DDS, 4);	// 120 MHz.
 	phase_r			<= 0;
 	addr_r			<= 22;
-	mem_clk_div_r	<= 1;
+	mem_clk_div_r	<= 0;
 	gain_r			<= 12000;
 	nsamp_r			<= 123;
 	outsel_r		<= 1;	// 0: prod, 1: dds, 2: mem
@@ -345,7 +345,7 @@ initial begin
 	freq_r			<= freq_calc(100, N_DDS, 13);
 	phase_r			<= 0;
 	addr_r			<= 0;
-	mem_clk_div_r	<= 1;
+	mem_clk_div_r	<= 0;
 	gain_r			<= 30000;
 	nsamp_r			<= 400/N_DDS;
 	outsel_r		<= 0;	// 0: prod, 1: dds, 2: mem
@@ -363,8 +363,8 @@ initial begin
 	s1_axis_tvalid	<= 1;
 	freq_r			<= freq_calc(100, N_DDS, 13);
 	phase_r			<= 0;
-	addr_r			<= 0;
-	mem_clk_div_r	<= 8;
+	addr_r			<= 22;
+	mem_clk_div_r	<= 7;
 	gain_r			<= 30000;
 	nsamp_r			<= 8*400/N_DDS;
 	outsel_r		<= 0;	// 0: prod, 1: dds, 2: mem
@@ -378,7 +378,7 @@ initial begin
 	//freq_r			<= freq_calc(100, N_DDS, 33);
 	//phase_r			<= 0;
 	//addr_r			<= 5;
-	//mem_clk_div_r		<= 1;
+	//mem_clk_div_r		<= 0;
 	//gain_r			<= 30000;
 	//nsamp_r			<= 670/N_DDS;
 	//outsel_r		<= 1;	// 0: prod, 1: dds, 2: mem
@@ -391,7 +391,7 @@ initial begin
 	//freq_r			<= freq_calc(100, N_DDS, 22);
 	//phase_r			<= 7689;
 	//addr_r			<= 0;
-	//mem_clk_div_r		<= 1;
+	//mem_clk_div_r		<= 0;
 	//gain_r			<= 30000;
 	//nsamp_r			<= 70/N_DDS;
 	//outsel_r		<= 2;	// 0: prod, 1: dds, 2: mem
@@ -409,7 +409,7 @@ initial begin
 	//freq_r			<= freq_calc(100, N_DDS, 3);
 	//phase_r			<= 0;
 	//addr_r			<= 5;
-	//mem_clk_div_r		<= 1;
+	//mem_clk_div_r		<= 0;
 	//gain_r			<= 30000;
 	//nsamp_r			<= 670/N_DDS;
 	//outsel_r		<= 1;	// 0: prod, 1: dds, 2: mem
