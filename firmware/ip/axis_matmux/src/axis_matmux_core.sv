@@ -1,0 +1,108 @@
+module axis_matmux_core
+    #(
+        parameter IN_COUNT_WIDTH = 2,  // Number of input bits (1-4), actual inputs = 2^IN_COUNT_WIDTH
+        parameter N_OUT = 1,           // Number of outputs (1-16)
+        parameter IN_WIDTH = 16,       // Width of each input in bits
+        parameter STAGE_DELAY = 1      // Number of pipeline stages between each adder level
+    )
+    (
+        // Clock and reset
+        input  wire                  aclk,
+        input  wire                  aresetn,
+
+        // AXIS Slave interfaces for input data
+        input  wire [2**IN_COUNT_WIDTH-1:0]           s_axis_tvalid,
+        output wire [2**IN_COUNT_WIDTH-1:0]           s_axis_tready,
+        input  wire [2**IN_COUNT_WIDTH-1:0][IN_WIDTH-1:0] s_axis_tdata,
+
+        // AXIS Master interfaces for output data
+        output wire [N_OUT-1:0]                 m_axis_tvalid,
+        input  wire [N_OUT-1:0]                 m_axis_tready,
+        output wire [N_OUT-1:0][IN_WIDTH-1:0]   m_axis_tdata,
+
+        // Matrix configuration input
+        input wire [4:0]            shift_matrix [0:15][0:15],
+        input wire [15:0]           output_enables
+    );
+
+    // Local parameters
+    localparam N_IN = 2**IN_COUNT_WIDTH;
+
+    // Matrix multiplication and adder tree logic
+    genvar out_idx;
+    generate
+        for (out_idx = 0; out_idx < N_OUT; out_idx++) begin : gen_outputs
+            // Pipeline registers for each stage
+            reg [N_IN-1:0][IN_WIDTH-1:0] stage_data [0:IN_COUNT_WIDTH*STAGE_DELAY];
+            reg [N_IN-1:0] stage_valid [0:IN_COUNT_WIDTH*STAGE_DELAY];
+            
+            // First stage: Apply shifts
+            always @(posedge aclk) begin
+                if (!aresetn) begin
+                    for (int i = 0; i < N_IN; i++) begin
+                        stage_data[0][i] <= '0;
+                        stage_valid[0][i] <= '0;
+                    end
+                    // Initialize all other stages to avoid unassigned bits
+                    for (int stage = 1; stage <= IN_COUNT_WIDTH*STAGE_DELAY; stage++) begin
+                        for (int i = 0; i < N_IN; i++) begin
+                            stage_data[stage][i] <= '0;
+                            stage_valid[stage][i] <= '0;
+                        end
+                    end
+                end else if (m_axis_tready[out_idx]) begin
+                    for (int i = 0; i < N_IN; i++) begin
+                        stage_data[0][i] <= output_enables[out_idx] ? (s_axis_tdata[i] >> shift_matrix[out_idx][i]) : '0;
+                        stage_valid[0][i] <= s_axis_tvalid[i];
+                    end
+                end
+            end
+
+            // Generate adder tree stages
+            for (genvar stage = 0; stage < IN_COUNT_WIDTH; stage++) begin : gen_stages
+                localparam int PAIRS = 2**(IN_COUNT_WIDTH-stage-1);
+                
+                for (genvar delay = 0; delay < STAGE_DELAY; delay++) begin : gen_delays
+                    localparam int CURR_STAGE = stage*STAGE_DELAY + delay;
+                    localparam int NEXT_STAGE = CURR_STAGE + 1;
+                    
+                    always @(posedge aclk) begin
+                        if (!aresetn) begin
+                            for (int i = 0; i < N_IN; i++) begin
+                                stage_data[NEXT_STAGE][i] <= '0;
+                                stage_valid[NEXT_STAGE][i] <= '0;
+                            end
+                        end else if (m_axis_tready[out_idx]) begin
+                            // First initialize all pairs to 0
+                            for (int i = 0; i < N_IN; i++) begin
+                                stage_data[NEXT_STAGE][i] <= '0;
+                                stage_valid[NEXT_STAGE][i] <= '0;
+                            end
+                            // Then update valid pairs
+                            for (int i = 0; i < PAIRS; i++) begin
+                                if (stage_valid[CURR_STAGE][i*2] && stage_valid[CURR_STAGE][i*2+1]) begin
+                                    stage_data[NEXT_STAGE][i] <= stage_data[CURR_STAGE][i*2] + stage_data[CURR_STAGE][i*2+1];
+                                    stage_valid[NEXT_STAGE][i] <= 1'b1;
+                                end else if (stage_valid[CURR_STAGE][i*2]) begin
+                                    stage_data[NEXT_STAGE][i] <= stage_data[CURR_STAGE][i*2];
+                                    stage_valid[NEXT_STAGE][i] <= 1'b1;
+                                end else if (stage_valid[CURR_STAGE][i*2+1]) begin
+                                    stage_data[NEXT_STAGE][i] <= stage_data[CURR_STAGE][i*2+1];
+                                    stage_valid[NEXT_STAGE][i] <= 1'b1;
+                                end
+                            end
+                        end
+                    end
+                end
+            end
+
+            // Assign outputs
+            assign m_axis_tdata[out_idx] = stage_data[IN_COUNT_WIDTH*STAGE_DELAY][0];
+            assign m_axis_tvalid[out_idx] = output_enables[out_idx] && stage_valid[IN_COUNT_WIDTH*STAGE_DELAY][0];
+        end
+    endgenerate
+
+    // Ready signals for all inputs
+    assign s_axis_tready = {N_IN{&m_axis_tready}};
+
+endmodule 
