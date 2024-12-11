@@ -12,7 +12,7 @@ module tb_axis_matmux_axi;
     reg aresetn = 0;
 
     // AXI4-Lite interface signals
-    reg [7:0] s_axi_awaddr;
+    reg [8:0] s_axi_awaddr;
     reg [2:0] s_axi_awprot;
     reg s_axi_awvalid;
     wire s_axi_awready;
@@ -23,7 +23,7 @@ module tb_axis_matmux_axi;
     wire [1:0] s_axi_bresp;
     wire s_axi_bvalid;
     reg s_axi_bready;
-    reg [7:0] s_axi_araddr;
+    reg [8:0] s_axi_araddr;
     reg [2:0] s_axi_arprot;
     reg s_axi_arvalid;
     wire s_axi_arready;
@@ -33,8 +33,10 @@ module tb_axis_matmux_axi;
     reg s_axi_rready;
 
     // Matrix configuration output
-    wire [4:0] shift_matrix [0:15][0:15];
-    wire [15:0] output_enables;
+    wire [4:0] shift_matrix [0:N_OUT-1][0:2**IN_COUNT_WIDTH-1];
+    wire [N_OUT-1:0] output_enables;
+
+    reg [15:0] test_case;
 
     // Clock generation
     always #(CLK_PERIOD/2) aclk = ~aclk;
@@ -71,7 +73,7 @@ module tb_axis_matmux_axi;
 
     // Task to perform AXI4-Lite write
     task axi_write;
-        input [7:0] addr;
+        input [8:0] addr;
         input [31:0] data;
         input [3:0] strb;
         begin
@@ -99,7 +101,7 @@ module tb_axis_matmux_axi;
 
     // Task to perform AXI4-Lite read
     task axi_read;
-        input [7:0] addr;
+        input [8:0] addr;
         output [31:0] data;
         begin
             // Address phase
@@ -135,6 +137,7 @@ module tb_axis_matmux_axi;
         s_axi_araddr = 0;
 
         // Reset sequence
+        test_case = 0;
         aresetn = 0;
         repeat(5) @(posedge aclk);
         aresetn = 1;
@@ -142,56 +145,75 @@ module tb_axis_matmux_axi;
 
         // Test case 1: Verify default state
         $display("Test case 1: Verify default state");
+        test_case = 1;
         begin
             reg [31:0] rdata;
-            axi_read(8'h00, rdata);
+            axi_read(9'h100, rdata);
             if (rdata !== {16'h0, N_OUT[7:0], 4'h0, IN_COUNT_WIDTH[3:0]})
                 $error("Test case 1 failed: Wrong default config value");
             if (output_enables !== 16'h0)
                 $error("Test case 1 failed: Outputs not disabled by default");
         end
 
-        // Test case 2: Enable outputs
-        $display("Test case 2: Enable outputs");
+        // Test case 2: Configure matrix for output 0
+        $display("Test case 2: Configure matrix for output 0");
+        test_case = 2;
+        begin
+            reg [31:0] rdata;
+            // Write shifts for inputs 0-3
+            axi_write(9'h000, 32'h04030201, 4'hF);
+            // Write shifts for inputs 4-7
+            axi_write(9'h004, 32'h08070605, 4'hF);
+            // Read back and verify
+            axi_read(9'h000, rdata);
+            if (rdata !== 32'h04030201)
+                $error("Test case 2 failed: Wrong matrix values for inputs 0-3");
+        end
+
+        // Test case 3: Enable outputs
+        $display("Test case 3: Enable outputs");
+        test_case = 3;
         begin
             reg [31:0] rdata;
             // Enable output 0
-            axi_write(8'h00, 32'h0001_0000, 4'hC);
-            axi_read(8'h00, rdata);
+            axi_write(9'h100, 32'h0001_0000, 4'hC);
+            axi_read(9'h100, rdata);
             if (rdata[31:16] !== 16'h0001)
-                $error("Test case 2 failed: Output 0 not enabled");
+                $error("Test case 3 failed: Output 0 not enabled");
             if (output_enables !== 16'h0001)
-                $error("Test case 2 failed: Output enable signal mismatch");
+                $error("Test case 3 failed: Output enable signal mismatch");
 
             // Enable both outputs
-            axi_write(8'h00, 32'h0003_0000, 4'hC);
-            axi_read(8'h00, rdata);
+            axi_write(9'h100, 32'h0003_0000, 4'hC);
+            axi_read(9'h100, rdata);
             if (rdata[31:16] !== 16'h0003)
-                $error("Test case 2 failed: Both outputs not enabled");
+                $error("Test case 3 failed: Both outputs not enabled");
             if (output_enables !== 16'h0003)
-                $error("Test case 2 failed: Output enable signal mismatch");
+                $error("Test case 3 failed: Output enable signal mismatch");
         end
 
-        // Test case 3: Invalid output enables
-        $display("Test case 3: Invalid output enables");
+        // Test case 4: Invalid output enables
+        $display("Test case 4: Invalid output enables");
+        test_case = 4;
         begin
             reg [31:0] rdata;
             // Try to enable non-existent outputs
-            axi_write(8'h00, 32'hFFFF_0000, 4'hC);
-            axi_read(8'h00, rdata);
+            axi_write(9'h100, 32'hFFFF_0000, 4'hC);
+            axi_read(9'h100, rdata);
             if (rdata[31:16] !== 16'h0003)  // Only outputs 0,1 should be enabled
-                $error("Test case 3 failed: Invalid outputs were enabled");
+                $error("Test case 4 failed: Invalid outputs were enabled");
         end
 
-        // Test case 4: Write protection
-        $display("Test case 4: Write protection");
+        // Test case 5: Write protection
+        $display("Test case 5: Write protection");
+        test_case = 5;
         begin
             reg [31:0] rdata;
             // Try to modify read-only fields
-            axi_write(8'h00, 32'h0000_FFFF, 4'h3);
-            axi_read(8'h00, rdata);
+            axi_write(9'h100, 32'h0000_FFFF, 4'h3);
+            axi_read(9'h100, rdata);
             if (rdata[15:0] !== {N_OUT[7:0], 4'h0, IN_COUNT_WIDTH[3:0]})
-                $error("Test case 4 failed: Read-only fields were modified");
+                $error("Test case 5 failed: Read-only fields were modified");
         end
 
         // End simulation

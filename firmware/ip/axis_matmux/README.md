@@ -24,7 +24,7 @@ A configurable matrix multiplexer core that performs weighted summation of input
 
 The core provides an AXI4-Lite slave interface for configuration. The register map is as follows:
 
-### Configuration Register (0x00, Read-only)
+### Configuration Register (0x100, Read-only)
 ```
 [31:16] Reserved
 [15:8]  N_OUT - Number of outputs
@@ -32,23 +32,26 @@ The core provides an AXI4-Lite slave interface for configuration. The register m
 [3:0]   IN_WIDTH - Number of input bits
 ```
 
-### Matrix Configuration Registers (0x04-0x40)
-Each output has a dedicated 32-bit register that configures the shift amounts for 4 inputs:
+### Matrix Configuration Registers (0x00-0xFC)
+Each output has a a vector of 4 32-bit registers that configures the shift amounts for 4 inputs each (total 16 inputs):
 ```
-[31:27] Shift amount for input 3
-[26:24] Reserved
-[23:19] Shift amount for input 2
-[18:16] Reserved
-[15:11] Shift amount for input 1
-[10:8]  Reserved
-[7:3]   Shift amount for input 0
-[2:0]   Reserved
+[31:29] Reserved
+[28:24] Shift amount for input 4*i + 3
+[23:21] Reserved
+[20:16] Shift amount for input 4*i + 2
+[15:13] Reserved
+[12:8]  Shift amount for input 4*i + 1
+[7:5]   Reserved
+[4:0]   Shift amount for input 4*i + 0
 ```
 
 For outputs with more than 4 inputs, additional registers are used:
 - Output 0: 0x04 (inputs 0-3), 0x08 (inputs 4-7), 0x0C (inputs 8-11), 0x10 (inputs 12-15)
 - Output 1: 0x14 (inputs 0-3), 0x18 (inputs 4-7), 0x1C (inputs 8-11), 0x20 (inputs 12-15)
-And so on...
+...
+- Output 16: 0xF4 (inputs 0-3), 0xF8 (inputs 4-7), 0xFC (inputs 8-11), 0x100 (inputs 12-15)
+
+NOTE: the core assumes that addresses are aligned to 4 bytes (32-bit words).
 
 ## Operation
 
@@ -95,3 +98,10 @@ Write 0x08 -> Configure shifts for inputs 4-7
 ```
 
 4. Start streaming data through AXI-Stream interfaces 
+
+## Performace
+For N_IN = 2, N_OUT = 1, IN_WIDTH = 16, and STAGE_DELAY = 1:
+Ran synthasis with clock period of 3.000 ns, got worst slack of 1.896 ns => maximum clock period is 1.104 ns = 906.79MHz
+
+For N_IN = 16, N_OUT = 16, IN_WIDTH = 16, and STAGE_DELAY = 1:
+Ran synthasis with clock period of 3.000 ns, got worst slack of 1.923 ns => maximum clock period is 1.077 ns = 928.51MHz

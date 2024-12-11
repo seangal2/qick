@@ -6,6 +6,7 @@ module tb_axis_matmux_core;
     localparam IN_COUNT_WIDTH = 2;  // 4 inputs
     localparam N_OUT = 2;           // 2 outputs
     localparam IN_WIDTH = 16;       // 16-bit inputs
+    localparam N_PARALLELISM = 1;  // Add parallelism parameter
     localparam STAGE_DELAY = 1;     // 1 pipeline stage
     localparam CLK_PERIOD = 10;     // 100MHz clock
 
@@ -16,16 +17,18 @@ module tb_axis_matmux_core;
     // Input AXI-Stream interfaces
     reg [2**IN_COUNT_WIDTH-1:0] s_axis_tvalid;
     wire [2**IN_COUNT_WIDTH-1:0] s_axis_tready;
-    reg [2**IN_COUNT_WIDTH-1:0][IN_WIDTH-1:0] s_axis_tdata;
+    reg [2**IN_COUNT_WIDTH-1:0][N_PARALLELISM*IN_WIDTH-1:0] s_axis_tdata;
 
     // Output AXI-Stream interfaces
     wire [N_OUT-1:0] m_axis_tvalid;
     reg [N_OUT-1:0] m_axis_tready;
-    wire [N_OUT-1:0][IN_WIDTH-1:0] m_axis_tdata;
+    wire [N_OUT-1:0][N_PARALLELISM*IN_WIDTH-1:0] m_axis_tdata;
 
     // Configuration matrix
-    reg [4:0] shift_matrix [0:15][0:15];
-    reg [15:0] output_enables;
+    reg [4:0] shift_matrix [0:N_OUT-1][0:2**IN_COUNT_WIDTH-1];
+    reg [N_OUT-1:0] output_enables;
+
+    reg [15:0] test_case;
 
     // Clock generation
     always #(CLK_PERIOD/2) aclk = ~aclk;
@@ -35,6 +38,7 @@ module tb_axis_matmux_core;
         .IN_COUNT_WIDTH(IN_COUNT_WIDTH),
         .N_OUT(N_OUT),
         .IN_WIDTH(IN_WIDTH),
+        .N_PARALLELISM(N_PARALLELISM),  // Add parallelism parameter
         .STAGE_DELAY(STAGE_DELAY)
     ) dut (
         .aclk(aclk),
@@ -65,6 +69,7 @@ module tb_axis_matmux_core;
         end
 
         // Reset sequence
+        test_case = 0;
         aresetn = 0;
         repeat(5) @(posedge aclk);
         aresetn = 1;
@@ -72,6 +77,8 @@ module tb_axis_matmux_core;
 
         // Test case 1: Verify outputs are disabled by default
         $display("Test case 1: Verify outputs are disabled by default");
+        test_case = 1;
+        s_axis_tdata[0] = 0;
         s_axis_tdata[0] = 16'h0001;
         s_axis_tdata[1] = 16'h0002;
         s_axis_tdata[2] = 16'h0004;
@@ -87,6 +94,7 @@ module tb_axis_matmux_core;
 
         // Test case 2: Medium value inputs with no shifts
         $display("Test case 2: Medium value inputs with no shifts");
+        test_case = 2;
         output_enables = 16'h0003;  // Enable both outputs
         s_axis_tdata[0] = 16'h1000;  // 4096
         s_axis_tdata[1] = 16'h0100;  // 256
@@ -102,6 +110,7 @@ module tb_axis_matmux_core;
 
         // Test case 3: Large shifts on medium values
         $display("Test case 3: Large shifts on medium values");
+        test_case = 3;
         shift_matrix[0][0] = 5'h0C;  // Shift by 12 (4096 -> 1)
         shift_matrix[0][1] = 5'h08;  // Shift by 8  (256 -> 1)
         shift_matrix[0][2] = 5'h04;  // Shift by 4  (16 -> 1)
@@ -115,6 +124,7 @@ module tb_axis_matmux_core;
 
         // Test case 4: Alternating shifts
         $display("Test case 4: Alternating shifts");
+        test_case = 4;
         shift_matrix[1][0] = 5'h00;  // No shift
         shift_matrix[1][1] = 5'h04;  // Shift by 4
         shift_matrix[1][2] = 5'h00;  // No shift
@@ -132,6 +142,7 @@ module tb_axis_matmux_core;
 
         // Test case 5: Progressive values with fixed shift
         $display("Test case 5: Progressive values with fixed shift");
+        test_case = 5;
         shift_matrix[0][0] = 5'h04;  // Shift by 4
         shift_matrix[0][1] = 5'h04;
         shift_matrix[0][2] = 5'h04;
@@ -149,6 +160,7 @@ module tb_axis_matmux_core;
 
         // Test case 6: Progressive shifts on fixed value
         $display("Test case 6: Progressive shifts on fixed value");
+        test_case = 6;
         shift_matrix[1][0] = 5'h00;  // No shift
         shift_matrix[1][1] = 5'h01;  // Shift by 1
         shift_matrix[1][2] = 5'h02;  // Shift by 2
