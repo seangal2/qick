@@ -103,12 +103,12 @@ module axis_matmux_axi
         end else begin            
             // Write happens when both address and data are valid and both readys are high
             if (s_axi_awvalid && s_axi_wvalid && axi_awready && axi_wready) begin
-                if (s_axi_awaddr[8]) begin  // Configuration register at 0x100
+                if (axi_awaddr[8]) begin  // Configuration register at 0x100
                     if (s_axi_wstrb[2] || s_axi_wstrb[3])
                         output_enables_reg <= s_axi_wdata[31:16] & {{16-N_OUT{1'b0}}, {N_OUT{1'b1}}};
                 end else begin  // Matrix configuration
-                    automatic logic [3:0] row = s_axi_awaddr[7:4];
-                    automatic logic [1:0] col = s_axi_awaddr[3:2];
+                    automatic logic [3:0] row = axi_awaddr[7:4];
+                    automatic logic [1:0] col = axi_awaddr[3:2];
                     
                     if (s_axi_wstrb[0]) shift_matrix_reg[row][col*4+0] <= s_axi_wdata[4:0];
                     if (s_axi_wstrb[1]) shift_matrix_reg[row][col*4+1] <= s_axi_wdata[12:8];
@@ -137,14 +137,18 @@ module axis_matmux_axi
         if (!aresetn) begin
             axi_arready <= 1'b0;
             axi_araddr <= '0;
+            axi_arvalid <= 1'b0;  // Initialize arvalid
         end else begin
             if (!axi_arready && s_axi_arvalid) begin
+                // Accept read address
                 axi_arready <= 1'b1;
                 axi_araddr <= s_axi_araddr;
-                axi_arvalid <= 1'b1;
+                axi_arvalid <= 1'b1;  // Set valid for data phase
             end else begin
                 axi_arready <= 1'b0;
-                axi_arvalid <= 1'b0;
+                if (axi_rvalid && s_axi_rready) begin
+                    axi_arvalid <= 1'b0;  // Clear valid after data is read
+                end
             end
         end
     end
@@ -155,16 +159,15 @@ module axis_matmux_axi
             axi_rvalid <= 1'b0;
             axi_rdata <= '0;
         end else begin
-            if (axi_arready && axi_arvalid && !axi_rvalid) begin
+            if (axi_arvalid && !axi_rvalid) begin
                 axi_rvalid <= 1'b1;
-                axi_arvalid <= 1'b0;
                 
                 // Read data multiplexing
-                if (s_axi_araddr[8]) begin  // Configuration register at 0x100
+                if (axi_araddr[8]) begin  // Configuration register at 0x100
                     axi_rdata <= {output_enables_reg, N_OUT[7:0], 4'h0, IN_COUNT_WIDTH[3:0]};
                 end else begin  // Matrix configuration
-                    automatic logic [3:0] row = s_axi_araddr[7:4];
-                    automatic logic [1:0] col = s_axi_araddr[3:2];
+                    automatic logic [3:0] row = axi_araddr[7:4];
+                    automatic logic [1:0] col = axi_araddr[3:2];
 
                     // Pack 4 shift values into one 32-bit word
                     axi_rdata[4:0]   <= shift_matrix_reg[row][col*4 + 0];
@@ -177,9 +180,8 @@ module axis_matmux_axi
                     axi_rdata[23:21] <= 3'b0;
                     axi_rdata[31:29] <= 3'b0;
                 end
-            end else if (axi_rvalid) begin
+            end else if (axi_rvalid && s_axi_rready) begin
                 axi_rvalid <= 1'b0;
-                axi_rdata <= '0;
             end
         end
     end

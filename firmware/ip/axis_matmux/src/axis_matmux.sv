@@ -12,7 +12,7 @@ module axis_matmux
         input  wire                  aresetn,
 
         // AXI4-Lite slave interface
-        input  wire [7:0]           s_axi_awaddr,
+        input  wire [8:0]           s_axi_awaddr,
         input  wire [2:0]           s_axi_awprot,
         input  wire                 s_axi_awvalid,
         output wire                 s_axi_awready,
@@ -23,7 +23,7 @@ module axis_matmux
         output wire [1:0]           s_axi_bresp,
         output wire                 s_axi_bvalid,
         input  wire                 s_axi_bready,
-        input  wire [7:0]           s_axi_araddr,
+        input  wire [8:0]           s_axi_araddr,
         input  wire [2:0]           s_axi_arprot,
         input  wire                 s_axi_arvalid,
         output wire                 s_axi_arready,

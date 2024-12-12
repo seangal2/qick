@@ -9,6 +9,8 @@ proc init_gui { IPINST } {
   ipgui::add_param $IPINST -name "IN_WIDTH"
   set STAGE_DELAY [ipgui::add_param $IPINST -name "STAGE_DELAY"]
   set_property tooltip {Increase this to make meet timing constraints} ${STAGE_DELAY}
+  set N_PARALLELISM [ipgui::add_param $IPINST -name "N_PARALLELISM"]
+  set_property tooltip {PARALLELISM} ${N_PARALLELISM}
 
 }
 
@@ -36,6 +38,15 @@ proc update_PARAM_VALUE.N_OUT { PARAM_VALUE.N_OUT } {
 
 proc validate_PARAM_VALUE.N_OUT { PARAM_VALUE.N_OUT } {
 	# Procedure called to validate N_OUT
+	return true
+}
+
+proc update_PARAM_VALUE.N_PARALLELISM { PARAM_VALUE.N_PARALLELISM } {
+	# Procedure called to update N_PARALLELISM when any of the dependent parameters in the arguments change
+}
+
+proc validate_PARAM_VALUE.N_PARALLELISM { PARAM_VALUE.N_PARALLELISM } {
+	# Procedure called to validate N_PARALLELISM
 	return true
 }
 
