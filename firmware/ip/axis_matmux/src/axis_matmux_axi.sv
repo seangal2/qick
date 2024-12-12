@@ -5,8 +5,8 @@ module axis_matmux_axi
     )
     (
         // Clock and reset
-        input  wire                  aclk,
-        input  wire                  aresetn,
+        input  wire                  axi_aclk,
+        input  wire                  axi_aresetn,
 
         // AXI4-Lite slave interface
         
@@ -66,8 +66,8 @@ module axis_matmux_axi
     reg [15:0] output_enables_reg;
 
     // Write address channel control
-    always @(posedge aclk) begin
-        if (!aresetn) begin
+    always @(posedge axi_aclk) begin
+        if (!axi_aresetn) begin
             axi_awready <= 1'b1;  // Ready to accept write address by default
             axi_awaddr <= '0;
         end else begin    
@@ -81,8 +81,8 @@ module axis_matmux_axi
     end
 
     // Write data channel control
-    always @(posedge aclk) begin
-        if (!aresetn) begin
+    always @(posedge axi_aclk) begin
+        if (!axi_aresetn) begin
             axi_wready <= 1'b1;  // Ready to accept write data by default
         end else begin
             if (s_axi_wvalid && axi_wready) begin
@@ -94,8 +94,8 @@ module axis_matmux_axi
     end
 
     // Write registers
-    always @(posedge aclk) begin
-        if (!aresetn) begin
+    always @(posedge axi_aclk) begin
+        if (!axi_aresetn) begin
             output_enables_reg <= '0;
             for (int i = 0; i < 16; i++)
                 for (int j = 0; j < 16; j++)
@@ -120,8 +120,8 @@ module axis_matmux_axi
     end
 
     // Write response channel
-    always @(posedge aclk) begin
-        if (!aresetn) begin
+    always @(posedge axi_aclk) begin
+        if (!axi_aresetn) begin
             axi_bvalid <= 1'b0;
         end else begin
             if (s_axi_awvalid && s_axi_wvalid && axi_awready && axi_wready) begin
@@ -133,8 +133,8 @@ module axis_matmux_axi
     end
 
     // Read address channel control
-    always @(posedge aclk) begin
-        if (!aresetn) begin
+    always @(posedge axi_aclk) begin
+        if (!axi_aresetn) begin
             axi_arready <= 1'b0;
             axi_araddr <= '0;
             axi_arvalid <= 1'b0;  // Initialize arvalid
@@ -154,8 +154,8 @@ module axis_matmux_axi
     end
 
     // Read data channel control
-    always @(posedge aclk) begin
-        if (!aresetn) begin
+    always @(posedge axi_aclk) begin
+        if (!axi_aresetn) begin
             axi_rvalid <= 1'b0;
             axi_rdata <= '0;
         end else begin

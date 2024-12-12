@@ -3,15 +3,19 @@ module axis_matmux
         parameter IN_COUNT_WIDTH = 1,  // Number of input bits (1-4), actual inputs = 2^IN_COUNT_WIDTH
         parameter N_OUT = 2,           // Number of outputs (1-16)
         parameter IN_WIDTH = 16,       // Width of each input in bits
-        parameter N_PARALLELISM = 2,  // Number of inputs in parallel
+        parameter N_PARALLELISM = 2,   // Number of inputs in parallel
         parameter STAGE_DELAY = 1      // Number of pipeline stages between each adder level
     )
     (
-        // Clock and reset
+        // AXI Clock domain
+        input  wire                  axi_aclk,
+        input  wire                  axi_aresetn,
+
+        // Data Clock domain
         input  wire                  aclk,
         input  wire                  aresetn,
 
-        // AXI4-Lite slave interface
+        // AXI4-Lite slave interface (in axi_aclk domain)
         input  wire [8:0]           s_axi_awaddr,
         input  wire [2:0]           s_axi_awprot,
         input  wire                 s_axi_awvalid,
@@ -165,18 +169,23 @@ module axis_matmux
 
     // Local parameters
     localparam N_IN = 2**IN_COUNT_WIDTH;
-
-    // Interconnect signals
+    
+    // Configuration signals in AXI clock domain
+    wire [4:0] shift_matrix_axi [0:N_OUT-1][0:N_IN-1];
+    wire [N_OUT-1:0] output_enables_axi;
+    
+    // Configuration signals in data clock domain
     wire [4:0] shift_matrix [0:N_OUT-1][0:N_IN-1];
     wire [N_OUT-1:0] output_enables;
 
-    // Instantiate AXI4-Lite slave interface
+    // AXI Slave interface
     axis_matmux_axi #(
         .IN_COUNT_WIDTH(IN_COUNT_WIDTH),
         .N_OUT(N_OUT)
-    ) axi_slave (
-        .aclk(aclk),
-        .aresetn(aresetn),
+    ) axi_inst (
+        .axi_aclk(axi_aclk),
+        .axi_aresetn(axi_aresetn),
+        // AXI interface connections
         .s_axi_awaddr(s_axi_awaddr),
         .s_axi_awprot(s_axi_awprot),
         .s_axi_awvalid(s_axi_awvalid),
@@ -196,58 +205,44 @@ module axis_matmux
         .s_axi_rresp(s_axi_rresp),
         .s_axi_rvalid(s_axi_rvalid),
         .s_axi_rready(s_axi_rready),
-        .shift_matrix(shift_matrix),
-        .output_enables(output_enables)
+        
+        // Configuration outputs (AXI clock domain)
+        .shift_matrix(shift_matrix_axi),
+        .output_enables(output_enables_axi)
     );
 
-    // // Configuration matrix
-    // (* keep = "true" *) reg [4:0] shift_matrix2 [0:N_OUT-1][0:N_IN-1];
-    // (* keep = "true" *) wire [N_OUT-1:0] output_enables2;
-
-    // assign output_enables2 = 2'b11;
-    // always @(posedge aclk) begin
-    //     for (int i = 0; i < N_OUT; i++) begin
-    //         for (int j = 0; j < N_IN; j++) begin
-    //             shift_matrix2[i][j] = 0;
-    //         end
-    //     end
-    // end
-
-    // Add pipeline registers for shift_matrix and output_enables to help with hold times due to high fanout
-    reg [4:0] shift_matrix_r1 [0:N_OUT-1][0:N_IN-1];
-    reg [4:0] shift_matrix_r2 [0:N_OUT-1][0:N_IN-1];
-    reg [4:0] shift_matrix_r3 [0:N_OUT-1][0:N_IN-1];
-    reg [4:0] shift_matrix_r4 [0:N_OUT-1][0:N_IN-1];
-    
-    reg [N_OUT-1:0] output_enables_r1;
-    reg [N_OUT-1:0] output_enables_r2;
-    reg [N_OUT-1:0] output_enables_r3;
-    reg [N_OUT-1:0] output_enables_r4;
-
-    always @(posedge aclk) begin
-        if (!aresetn) begin
-            shift_matrix_r1 <= '{default: '{default: 0}};
-            shift_matrix_r2 <= '{default: '{default: 0}};
-            shift_matrix_r3 <= '{default: '{default: 0}};
-            shift_matrix_r4 <= '{default: '{default: 0}};
-            output_enables_r1 <= 0;
-            output_enables_r2 <= 0;
-            output_enables_r3 <= 0;
-            output_enables_r4 <= 0;
-        end else begin
-            shift_matrix_r1 <= shift_matrix;
-            output_enables_r1 <= output_enables;
-
-            shift_matrix_r2 <= shift_matrix_r1;
-            output_enables_r2 <= output_enables_r1;
-
-            shift_matrix_r3 <= shift_matrix_r2;
-            output_enables_r3 <= output_enables_r2;
-
-            shift_matrix_r4 <= shift_matrix_r3;
-            output_enables_r4 <= output_enables_r3;
+    // Clock domain crossing for shift matrix
+    generate
+        for (genvar i = 0; i < N_OUT; i++) begin : gen_out_cdc
+            for (genvar j = 0; j < N_IN; j++) begin : gen_in_cdc
+                xpm_cdc_array_single #(
+                    .DEST_SYNC_FF(4),
+                    .INIT_SYNC_FF(0),
+                    .SIM_ASSERT_CHK(0),
+                    .SRC_INPUT_REG(1),
+                    .WIDTH(5)
+                ) shift_cdc_inst (
+                    .src_clk(axi_aclk),
+                    .src_in(shift_matrix_axi[i][j]),
+                    .dest_clk(aclk),
+                    .dest_out(shift_matrix[i][j])
+                );
+            end
         end
-    end
+    endgenerate
+
+    xpm_cdc_array_single #(
+        .DEST_SYNC_FF(4),
+        .INIT_SYNC_FF(0),
+        .SIM_ASSERT_CHK(0),
+        .SRC_INPUT_REG(1),
+        .WIDTH(N_OUT)
+    ) output_enables_cdc_inst (
+        .src_clk(axi_aclk),
+        .src_in(output_enables_axi),
+        .dest_clk(aclk),
+        .dest_out(output_enables)
+    );
 
     
     // Pack input signals into arrays for the core module
@@ -327,8 +322,8 @@ module axis_matmux
                 .m_axis_tvalid(m_axis_tvalid_core[i]),
                 .m_axis_tready(m_axis_tready[N_OUT-1:0]),
                 .m_axis_tdata(m_axis_tdata_core[N_OUT-1:0]),
-                .shift_matrix(shift_matrix_r4),
-                .output_enables(output_enables_r4)
+                .shift_matrix(shift_matrix),
+                .output_enables(output_enables)
             );
         end
     endgenerate

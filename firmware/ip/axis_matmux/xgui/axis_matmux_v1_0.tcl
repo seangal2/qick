@@ -80,3 +80,8 @@ proc update_MODELPARAM_VALUE.STAGE_DELAY { MODELPARAM_VALUE.STAGE_DELAY PARAM_VA
 	set_property value [get_property value ${PARAM_VALUE.STAGE_DELAY}] ${MODELPARAM_VALUE.STAGE_DELAY}
 }
 
+proc update_MODELPARAM_VALUE.N_PARALLELISM { MODELPARAM_VALUE.N_PARALLELISM PARAM_VALUE.N_PARALLELISM } {
+	# Procedure called to set VHDL generic/Verilog parameter value(s) based on TCL parameter value
+	set_property value [get_property value ${PARAM_VALUE.N_PARALLELISM}] ${MODELPARAM_VALUE.N_PARALLELISM}
+}
+
