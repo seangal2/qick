@@ -53,6 +53,7 @@ module axis_matmux_axi
     reg axi_awready;
     reg axi_wready;
     reg axi_bvalid;
+    reg [1:0] axi_bresp;
     reg axi_arready;
     reg axi_rvalid;
     reg [31:0] axi_rdata;
@@ -65,17 +66,31 @@ module axis_matmux_axi
     reg [4:0] shift_matrix_reg [0:15][0:15];
     reg [15:0] output_enables_reg;
 
-    // Write address channel control
+
     always @(posedge axi_aclk) begin
         if (!axi_aresetn) begin
-            axi_awready <= 1'b1;  // Ready to accept write address by default
+            axi_awready <= 1'b0;
+            aw_en <= 1'b1;
+        end else begin
+            if (axi_awready == 1'b0 && s_axi_awvalid && s_axi_wvalid && aw_en) begin
+                axi_awready <= 1'b1;  // Slave is ready to accept write address when both valid
+                aw_en <= 1'b0;
+            end else if (s_axi_bready && axi_bvalid) begin
+                aw_en <= 1'b1;
+                axi_awready <= 1'b0;
+            end else begin
+                axi_awready <= 1'b0;
+            end
+        end
+    end
+
+    // Implement axi_awaddr latching
+    always @(posedge axi_aclk) begin
+        if (!axi_aresetn) begin
             axi_awaddr <= '0;
-        end else begin    
-            if (s_axi_awvalid && axi_awready) begin
-                axi_awready <= 1'b0;  // Deassert ready after accepting address
-                axi_awaddr <= s_axi_awaddr;
-            end else if (axi_bvalid && s_axi_bready) begin
-                axi_awready <= 1'b1;  // Ready for next transaction after response
+        end else begin
+            if (axi_awready == 1'b0 && s_axi_awvalid && s_axi_wvalid && aw_en) begin
+                axi_awaddr <= s_axi_awaddr;  // Write Address latching
             end
         end
     end
@@ -83,15 +98,19 @@ module axis_matmux_axi
     // Write data channel control
     always @(posedge axi_aclk) begin
         if (!axi_aresetn) begin
-            axi_wready <= 1'b1;  // Ready to accept write data by default
+            axi_wready <= 1'b0;
         end else begin
-            if (s_axi_wvalid && axi_wready) begin
-                axi_wready <= 1'b0;  // Deassert ready after accepting data
-            end else if (axi_bvalid && s_axi_bready) begin
-                axi_wready <= 1'b1;  // Ready for next transaction after response
+            if (axi_wready == 1'b0 && s_axi_wvalid && s_axi_awvalid && aw_en) begin
+                axi_wready <= 1'b1;  // Slave is ready to accept write data when both valid
+            end else begin
+                axi_wready <= 1'b0;
             end
         end
     end
+
+    // Write enable signal - exactly like VHDL
+    wire slv_reg_wren;
+    assign slv_reg_wren = axi_wready && s_axi_wvalid && axi_awready && s_axi_awvalid;
 
     // Write registers
     always @(posedge axi_aclk) begin
@@ -101,12 +120,11 @@ module axis_matmux_axi
                 for (int j = 0; j < 16; j++)
                     shift_matrix_reg[i][j] <= '0;
         end else begin            
-            // Write happens when both address and data are valid and both readys are high
-            if (s_axi_awvalid && s_axi_wvalid && axi_awready && axi_wready) begin
-                if (axi_awaddr[8]) begin  // Configuration register at 0x100
+            if (slv_reg_wren) begin  // Use the same write enable as VHDL
+                if (axi_awaddr[8]) begin
                     if (s_axi_wstrb[2] || s_axi_wstrb[3])
                         output_enables_reg <= s_axi_wdata[31:16] & {{16-N_OUT{1'b0}}, {N_OUT{1'b1}}};
-                end else begin  // Matrix configuration
+                end else begin
                     automatic logic [3:0] row = axi_awaddr[7:4];
                     automatic logic [1:0] col = axi_awaddr[3:2];
                     
@@ -123,11 +141,13 @@ module axis_matmux_axi
     always @(posedge axi_aclk) begin
         if (!axi_aresetn) begin
             axi_bvalid <= 1'b0;
+            axi_bresp <= 2'b00;
         end else begin
-            if (s_axi_awvalid && s_axi_wvalid && axi_awready && axi_wready) begin
-                axi_bvalid <= 1'b1;  // Assert valid right after write
-            end else if (axi_bvalid && s_axi_bready) begin
-                axi_bvalid <= 1'b0;  // Deassert valid when response is accepted
+            if (slv_reg_wren) begin  // Assert bvalid when write happens
+                axi_bvalid <= 1'b1;
+                axi_bresp <= 2'b00;
+            end else if (s_axi_bready && axi_bvalid) begin
+                axi_bvalid <= 1'b0;
             end
         end
     end
@@ -189,7 +209,7 @@ module axis_matmux_axi
     // AXI4-Lite output assignments
     assign s_axi_awready = axi_awready;
     assign s_axi_wready = axi_wready;
-    assign s_axi_bresp = 2'b00;
+    assign s_axi_bresp = axi_bresp;
     assign s_axi_bvalid = axi_bvalid;
     assign s_axi_arready = axi_arready;
     assign s_axi_rdata = axi_rdata;

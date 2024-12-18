@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wave_config>
+   <wave_state>
+   </wave_state>
+   <db_ref_list>
+      <db_ref path="tb_axis_matmux_core_behav.wdb" id="1">
+         <top_modules>
+            <top_module name="glbl" />
+            <top_module name="tb_axis_matmux_core" />
+         </top_modules>
+      </db_ref>
+   </db_ref_list>
+   <zoom_setting>
+      <ZoomStartTime time="0.000 ns"></ZoomStartTime>
+      <ZoomEndTime time="330.501 ns"></ZoomEndTime>
+      <Cursor1Time time="145.000 ns"></Cursor1Time>
+   </zoom_setting>
+   <column_width_setting>
+      <NameColumnWidth column_width="267"></NameColumnWidth>
+      <ValueColumnWidth column_width="160"></ValueColumnWidth>
+   </column_width_setting>
+   <WVObjectSize size="18" />
+   <wvobject fp_name="/tb_axis_matmux_core/aclk" type="logic">
+      <obj_property name="ElementShortName">aclk</obj_property>
+      <obj_property name="ObjectShortName">aclk</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_axis_matmux_core/aresetn" type="logic">
+      <obj_property name="ElementShortName">aresetn</obj_property>
+      <obj_property name="ObjectShortName">aresetn</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_axis_matmux_core/s_axis_tvalid" type="array">
+      <obj_property name="ElementShortName">s_axis_tvalid[3:0]</obj_property>
+      <obj_property name="ObjectShortName">s_axis_tvalid[3:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_axis_matmux_core/s_axis_tready" type="array">
+      <obj_property name="ElementShortName">s_axis_tready[3:0]</obj_property>
+      <obj_property name="ObjectShortName">s_axis_tready[3:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_axis_matmux_core/m_axis_tvalid" type="array">
+      <obj_property name="ElementShortName">m_axis_tvalid[1:0]</obj_property>
+      <obj_property name="ObjectShortName">m_axis_tvalid[1:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_axis_matmux_core/m_axis_tready" type="array">
+      <obj_property name="ElementShortName">m_axis_tready[1:0]</obj_property>
+      <obj_property name="ObjectShortName">m_axis_tready[1:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_axis_matmux_core/m_axis_tdata" type="array">
+      <obj_property name="ElementShortName">m_axis_tdata[1:0][15:0]</obj_property>
+      <obj_property name="ObjectShortName">m_axis_tdata[1:0][15:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_axis_matmux_core/output_enables" type="array">
+      <obj_property name="ElementShortName">output_enables[1:0]</obj_property>
+      <obj_property name="ObjectShortName">output_enables[1:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_axis_matmux_core/IN_COUNT_WIDTH" type="array">
+      <obj_property name="ElementShortName">IN_COUNT_WIDTH[31:0]</obj_property>
+      <obj_property name="ObjectShortName">IN_COUNT_WIDTH[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_axis_matmux_core/N_OUT" type="array">
+      <obj_property name="ElementShortName">N_OUT[31:0]</obj_property>
+      <obj_property name="ObjectShortName">N_OUT[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_axis_matmux_core/IN_WIDTH" type="array">
+      <obj_property name="ElementShortName">IN_WIDTH[31:0]</obj_property>
+      <obj_property name="ObjectShortName">IN_WIDTH[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_axis_matmux_core/STAGE_DELAY" type="array">
+      <obj_property name="ElementShortName">STAGE_DELAY[31:0]</obj_property>
+      <obj_property name="ObjectShortName">STAGE_DELAY[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_axis_matmux_core/CLK_PERIOD" type="array">
+      <obj_property name="ElementShortName">CLK_PERIOD[31:0]</obj_property>
+      <obj_property name="ObjectShortName">CLK_PERIOD[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_axis_matmux_core/test_case" type="array">
+      <obj_property name="ElementShortName">test_case[15:0]</obj_property>
+      <obj_property name="ObjectShortName">test_case[15:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_axis_matmux_core/shift_matrix" type="array">
+      <obj_property name="ElementShortName">shift_matrix[0:1][0:3][4:0]</obj_property>
+      <obj_property name="ObjectShortName">shift_matrix[0:1][0:3][4:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_axis_matmux_core/s_axis_tdata" type="array">
+      <obj_property name="ElementShortName">s_axis_tdata[3:0][15:0]</obj_property>
+      <obj_property name="ObjectShortName">s_axis_tdata[3:0][15:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_axis_matmux_core/dut/\gen_outputs[0].stage_valid " type="array">
+      <obj_property name="ElementShortName">\gen_outputs[0].stage_valid [0:2][3:0]</obj_property>
+      <obj_property name="ObjectShortName">\gen_outputs[0].stage_valid [0:2][3:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_axis_matmux_core/dut/\gen_outputs[0].stage_data " type="array">
+      <obj_property name="ElementShortName">\gen_outputs[0].stage_data [0:2][3:0][15:0]</obj_property>
+      <obj_property name="ObjectShortName">\gen_outputs[0].stage_data [0:2][3:0][15:0]</obj_property>
+      <obj_property name="isExpanded"></obj_property>
+   </wvobject>
+</wave_config>

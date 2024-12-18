@@ -46,10 +46,10 @@ Each output has a a vector of 4 32-bit registers that configures the shift amoun
 ```
 
 For outputs with more than 4 inputs, additional registers are used:
-- Output 0: 0x04 (inputs 0-3), 0x08 (inputs 4-7), 0x0C (inputs 8-11), 0x10 (inputs 12-15)
-- Output 1: 0x14 (inputs 0-3), 0x18 (inputs 4-7), 0x1C (inputs 8-11), 0x20 (inputs 12-15)
+- Output 0: 0x00 (inputs 0-3), 0x04 (inputs 4-7), 0x08 (inputs 8-11), 0x0C (inputs 12-15)
+- Output 1: 0x10 (inputs 0-3), 0x14 (inputs 4-7), 0x18 (inputs 8-11), 0x1C (inputs 12-15)
 ...
-- Output 16: 0xF4 (inputs 0-3), 0xF8 (inputs 4-7), 0xFC (inputs 8-11), 0x100 (inputs 12-15)
+- Output 16: 0xF0 (inputs 0-3), 0xF4 (inputs 4-7), 0xF8 (inputs 8-11), 0xFC (inputs 12-15)
 
 NOTE: the core assumes that addresses are aligned to 4 bytes (32-bit words).
 
