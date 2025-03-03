@@ -320,8 +320,8 @@ class FullSpeedGenManager(AbsGenManager):
             style = params['style']
             # these mode bits could be defined, or left as None
             phrst, stdysel, mode, outsel = [params.get(x) for x in ['phrst', 'stdysel', 'mode', 'outsel']]
-            if phrst is not None and self.gencfg['type'] != 'axis_signal_gen_v6':
-                raise RuntimeError("phrst not supported for %s, only for axis_signal_gen_v6" % (self.gencfg['type']))
+            if phrst is not None and self.gencfg['type'] not in ['axis_signal_gen_v6', 'axis_signal_gen_v6_memory_interpolator']:
+                raise RuntimeError("phrst not supported for %s, only for axis_signal_gen_v6 and axis_signal_gen_v6_memory_interpolator" % (self.gencfg['type']))
 
             self.next_pulse = {}
             self.next_pulse['rp'] = self.rp
@@ -554,6 +554,7 @@ class QickProgram(AbsQickProgram):
     gentypes = {'axis_signal_gen_v4': FullSpeedGenManager,
                 'axis_signal_gen_v5': FullSpeedGenManager,
                 'axis_signal_gen_v6': FullSpeedGenManager,
+                'axis_signal_gen_v6_memory_interpolator': FullSpeedGenManager,
                 'axis_sg_int4_v1': InterpolatedGenManager,
                 'axis_sg_mux4_v1': MultiplexedGenManager,
                 'axis_sg_mux4_v2': MultiplexedGenManager,
